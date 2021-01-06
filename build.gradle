@@ -8,10 +8,33 @@ group = 'uk.nhs.digital.nhsconnect'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
+bootJar {
+	mainClassName = 'uk.nhs.digital.nhsconnect.lab.results.IntegrationAdapterLabResultsApplication'
+}
+
+sourceSets {
+	intTest {
+		compileClasspath += sourceSets.main.output
+		runtimeClasspath += sourceSets.main.output
+	}
+
+	recepResponder {
+		compileClasspath += sourceSets.main.output
+		runtimeClasspath += sourceSets.main.output
+	}
+}
+
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+	intTestImplementation.extendsFrom implementation
+	intTestImplementation.extendsFrom testImplementation
+	intTestRuntimeOnly.extendsFrom runtimeOnly
+
+	recepResponderImplementation.extendsFrom implementation
+	recepResponderImplementation.extendsFrom testImplementation
+	recepResponderRuntimeOnly.extendsFrom runtimeOnly
 }
 
 repositories {
@@ -20,11 +43,28 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
-	compileOnly 'org.projectlombok:lombok'
+
+	implementation 'org.projectlombok:lombok'
+	testImplementation 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 test {
 	useJUnitPlatform()
 }
+
+task integrationTest(type: Test) {
+	useJUnitPlatform() {
+		description = 'Runs integration tests.'
+		group = 'verification'
+
+		testClassesDirs = sourceSets.intTest.output.classesDirs
+		classpath = sourceSets.intTest.runtimeClasspath
+		shouldRunAfter test
+	}
+}
+
+check.dependsOn integrationTest
