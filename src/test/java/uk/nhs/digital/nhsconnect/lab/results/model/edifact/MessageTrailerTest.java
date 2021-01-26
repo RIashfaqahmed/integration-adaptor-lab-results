@@ -8,14 +8,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-
 public class MessageTrailerTest {
 
     private static final int NUMBER_OF_SEGMENTS = 18;
     private static final long SEQUENCE_NUMBER = 3L;
 
     @Test
-    public void testValidMessageHeader() throws EdifactValidationException {
+    public void testValidMessageHeader() {
         MessageTrailer messageTrailer = new MessageTrailer(NUMBER_OF_SEGMENTS);
         messageTrailer.setSequenceNumber(SEQUENCE_NUMBER);
 
@@ -58,7 +57,7 @@ public class MessageTrailerTest {
         var messageTrailer = MessageTrailer.fromString(edifact);
 
         assertThat(messageTrailer).isExactlyInstanceOf(MessageTrailer.class);
-        assertThat(messageTrailer).isEqualToComparingFieldByField(expectedMessageTrailer);
+        assertThat(messageTrailer).usingRecursiveComparison().isEqualTo(expectedMessageTrailer);
         assertThat(messageTrailer.toEdifact()).isEqualTo(edifact);
     }
 }

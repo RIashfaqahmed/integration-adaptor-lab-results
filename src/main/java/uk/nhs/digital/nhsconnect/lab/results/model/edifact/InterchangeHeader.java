@@ -26,7 +26,7 @@ import java.time.format.DateTimeFormatter;
 @AllArgsConstructor
 public class InterchangeHeader extends Segment {
 
-    public static final String KEY = "UNB";
+    protected static final String KEY = "UNB";
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyMMdd:HHmm").withZone(TimestampService.UK_ZONE);
     public static final long MAX_INTERCHANGE_SEQUENCE = 99_999_999L;
     private static final String RECEP_ENDING = "+RECEP+++EDIFACT TRANSFER";
@@ -41,7 +41,7 @@ public class InterchangeHeader extends Segment {
     private @NonNull Instant translationTime;
     private Long sequenceNumber;
 
-    public static InterchangeHeader fromString(String edifactString) {
+    public static InterchangeHeader fromString(final String edifactString) {
         if (!edifactString.startsWith(InterchangeHeader.KEY)) {
             throw new IllegalArgumentException("Can't create " + InterchangeHeader.class.getSimpleName() + " from " + edifactString);
         }

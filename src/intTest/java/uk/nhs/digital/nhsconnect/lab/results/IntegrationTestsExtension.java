@@ -16,11 +16,10 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.springframework.jms.support.destination.JmsDestinationAccessor.RECEIVE_TIMEOUT_NO_WAIT;
+import static uk.nhs.digital.nhsconnect.lab.results.IntegrationBaseTest.DLQ_PREFIX;
 
 @Slf4j
 public class IntegrationTestsExtension implements BeforeAllCallback, BeforeEachCallback {
-
-    private static final String DLQ_PREFIX = "DLQ.";
 
     @Override
     public void beforeAll(ExtensionContext context) {
@@ -37,10 +36,14 @@ public class IntegrationTestsExtension implements BeforeAllCallback, BeforeEachC
 
         var meshInboundQueueName = Objects.requireNonNull(
                 applicationContext.getEnvironment().getProperty("labresults.amqp.meshInboundQueueName"));
+        var meshOutboundQueueName = Objects.requireNonNull(
+                applicationContext.getEnvironment().getProperty("labresults.amqp.meshOutboundQueueName"));
+        var gpOutboundQueueName = Objects.requireNonNull(
+                applicationContext.getEnvironment().getProperty("labresults.amqp.gpOutboundQueueName"));
 
         var receiveTimeout = jmsTemplate.getReceiveTimeout();
         jmsTemplate.setReceiveTimeout(RECEIVE_TIMEOUT_NO_WAIT);
-        List.of(meshInboundQueueName)
+        List.of(meshInboundQueueName, meshOutboundQueueName, gpOutboundQueueName)
                 .stream()
                 .map(queueName -> List.of(queueName, DLQ_PREFIX + queueName))
                 .flatMap(Collection::stream)

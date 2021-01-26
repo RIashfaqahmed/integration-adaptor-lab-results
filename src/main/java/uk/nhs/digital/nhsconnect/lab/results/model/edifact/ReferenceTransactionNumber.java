@@ -14,8 +14,8 @@ import uk.nhs.digital.nhsconnect.lab.results.model.edifact.message.Split;
 @NoArgsConstructor
 public class ReferenceTransactionNumber extends Segment {
 
-    public static final String KEY = "RFF";
-    public static final String QUALIFIER = "TN";
+    private static final String KEY = "RFF";
+    private static final String QUALIFIER = "TN";
     public static final String KEY_QUALIFIER = KEY + "+" + QUALIFIER;
     public static final long MAX_TRANSACTION_NUMBER = 9_999_999L;
 
@@ -37,11 +37,11 @@ public class ReferenceTransactionNumber extends Segment {
     @Override
     protected void validateStateful() throws EdifactValidationException {
         if (transactionNumber == null) {
-            throw new EdifactValidationException(getKey() + ": Attribute reference is required");
+            throw new EdifactValidationException(getKey() + ": Attribute transactionNumber is required");
         }
         if (transactionNumber < 1 || transactionNumber > MAX_TRANSACTION_NUMBER) {
             throw new EdifactValidationException(
-                getKey() + ": Attribute transactionNumber must be between 1 and " + MAX_TRANSACTION_NUMBER);
+                    getKey() + ": Attribute transactionNumber must be between 1 and " + MAX_TRANSACTION_NUMBER);
         }
     }
 

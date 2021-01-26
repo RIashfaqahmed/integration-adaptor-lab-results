@@ -5,18 +5,22 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.Resource;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import uk.nhs.digital.nhsconnect.lab.results.inbound.queue.InboundQueueService;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.RecipientMailboxIdMappings;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.http.MeshClient;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.http.MeshConfig;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.http.MeshHeaders;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.http.MeshHttpClientBuilder;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.http.MeshRequests;
+import uk.nhs.digital.nhsconnect.lab.results.mesh.message.InboundMeshMessage;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.MeshMessage;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.OutboundMeshMessage;
 import uk.nhs.digital.nhsconnect.lab.results.utils.JmsReader;
@@ -38,13 +42,15 @@ import static org.mockito.Mockito.when;
 @ExtendWith({SpringExtension.class, SoftAssertionsExtension.class, IntegrationTestsExtension.class})
 @SpringBootTest
 @Slf4j
+@Timeout(IntegrationBaseTest.TIMEOUT_SECONDS)
 public abstract class IntegrationBaseTest {
 
+    public static final String DLQ_PREFIX = "DLQ.";
     protected static final int WAIT_FOR_IN_SECONDS = 10;
     protected static final int POLL_INTERVAL_MS = 100;
     protected static final int POLL_DELAY_MS = 10;
     private static final int JMS_RECEIVE_TIMEOUT = 500;
-
+    protected static final int TIMEOUT_SECONDS = 10;
     @Autowired
     private JmsTemplate jmsTemplate;
 
@@ -54,15 +60,32 @@ public abstract class IntegrationBaseTest {
 
     @Autowired
     private MeshConfig meshConfig;
-
-
     @Autowired
     private RecipientMailboxIdMappings recipientMailboxIdMappings;
     @Autowired
     private MeshHttpClientBuilder meshHttpClientBuilder;
+    @Autowired
+    private InboundQueueService inboundQueueService;
 
+    @Getter
     @Value("${labresults.amqp.meshInboundQueueName}")
     private String meshInboundQueueName;
+
+    @Getter
+    @Value("${labresults.amqp.meshOutboundQueueName}")
+    private String meshOutboundQueueName;
+
+    @Getter
+    @Value("${labresults.amqp.gpOutboundQueueName}")
+    private String gpOutboundQueueName;
+
+    @Getter
+    @Value("classpath:edifact/registration.dat")
+    private Resource edifactResource;
+
+    @Getter
+    @Value("classpath:edifact/registration.json")
+    private Resource fhirResource;
 
     private long originalReceiveTimeout;
 
@@ -132,8 +155,13 @@ public abstract class IntegrationBaseTest {
     }
 
     @SneakyThrows
-    protected Message getInboundQueueMessage() {
-        return waitFor(() -> jmsTemplate.receive(meshInboundQueueName));
+    protected Message getGpOutboundQueueMessage() {
+        return waitFor(() -> jmsTemplate.receive(gpOutboundQueueName));
+    }
+
+    @SneakyThrows
+    protected Message getDeadLetterMeshInboundQueueMessage(String queueName) {
+        return waitFor(() -> jmsTemplate.receive(DLQ_PREFIX + queueName));
     }
 
     protected <T> T waitFor(Supplier<T> supplier) {
@@ -154,7 +182,20 @@ public abstract class IntegrationBaseTest {
         return dataToReturn.get();
     }
 
-    protected void clearInboundQueue() {
-        waitForCondition(() -> jmsTemplate.receive(meshInboundQueueName) == null);
+    protected void clearGpOutboundQueue() {
+        waitForCondition(() -> jmsTemplate.receive(gpOutboundQueueName) == null);
+    }
+
+    @SneakyThrows
+    protected void clearDeadLetterQueue(String queueName) {
+        waitForCondition(() -> jmsTemplate.receive(DLQ_PREFIX + queueName) == null);
+    }
+
+    protected void sendToMeshInboundQueue(InboundMeshMessage meshMessage) {
+        inboundQueueService.publish(meshMessage);
+    }
+
+    protected void sendToMeshInboundQueue(String data) {
+        jmsTemplate.send(meshInboundQueueName, session -> session.createTextMessage(data));
     }
 }

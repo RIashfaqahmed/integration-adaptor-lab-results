@@ -10,7 +10,7 @@ import uk.nhs.digital.nhsconnect.lab.results.model.edifact.message.Split;
 /**
  * A specialisation of a segment for the specific use case of a message header
  * takes in specific values required to generate an message header
- * example: UNH+00000003+FHSREG:0:1:FH:FHS001'
+ * example: UNH+00000003+FHSREG:0:1:FH:FHS001'.
  */
 @Getter
 @Setter
@@ -47,7 +47,7 @@ public class MessageHeader extends Segment {
     @Override
     public void preValidate() { }
 
-    public static MessageHeader fromString(String edifactString) {
+    public static MessageHeader fromString(final String edifactString) {
         if (!edifactString.startsWith(MessageHeader.KEY)) {
             throw new IllegalArgumentException("Can't create " + MessageHeader.class.getSimpleName() + " from " + edifactString);
         }
