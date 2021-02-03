@@ -10,7 +10,7 @@ import java.util.function.Predicate;
 public abstract class Segment {
     protected static final String PLUS_SEPARATOR = "+";
     protected static final String COLON_SEPARATOR = ":";
-    private static final String TERMINATOR = "'";
+    protected static final String TERMINATOR = "'";
 
     protected static <T> List<T> removeEmptyTrailingFields(List<T> list, Predicate<T> predicate) {
         var result = new ArrayList<T>();
