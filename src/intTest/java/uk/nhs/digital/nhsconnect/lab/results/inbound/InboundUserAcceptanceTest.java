@@ -8,7 +8,6 @@ import uk.nhs.digital.nhsconnect.lab.results.IntegrationBaseTest;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.OutboundMeshMessage;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.WorkflowId;
 import uk.nhs.digital.nhsconnect.lab.results.model.edifact.Interchange;
-import uk.nhs.digital.nhsconnect.lab.results.model.edifact.TransactionType;
 import uk.nhs.digital.nhsconnect.lab.results.utils.JmsHeaders;
 
 import javax.jms.JMSException;
@@ -21,8 +20,8 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The test EDIFACT message (.dat file) is sent to the MESH mailbox where the adaptor receives inbound transactions.
- * The test waits for the transaction to be processed and compares the FHIR message published to the GP Outbound Queue
+ * The test EDIFACT message (.dat file) is sent to the MESH mailbox where the adaptor receives inbound messages.
+ * The test waits for the messages to be processed and compares the FHIR message published to the GP Outbound Queue
  * with the expected FHIR representation of the original message sent (.json file having the same name as the .dat)
  */
 @Slf4j
@@ -54,9 +53,6 @@ public class InboundUserAcceptanceTest extends IntegrationBaseTest {
 
         final Message gpOutboundQueueMessage = getGpOutboundQueueMessage();
         assertThat(gpOutboundQueueMessage).isNotNull();
-
-        final String transactionType = gpOutboundQueueMessage.getStringProperty(JmsHeaders.TRANSACTION_TYPE);
-        assertThat(transactionType).isEqualTo(TransactionType.APPROVAL.name().toLowerCase());
 
         final String conservationId = gpOutboundQueueMessage.getStringProperty(JmsHeaders.CONVERSATION_ID);
         assertThat(conservationId).isNotEmpty();

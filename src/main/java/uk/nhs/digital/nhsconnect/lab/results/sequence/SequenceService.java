@@ -6,17 +6,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class SequenceService {
-    private static final String TRANSACTION_KEY_FORMAT = "TN-%s";
     private static final String INTERCHANGE_FORMAT = "SIS-%s-%s";
     private static final String INTERCHANGE_MESSAGE_FORMAT = "SMS-%s-%s";
 
     @Autowired
     private SequenceRepository sequenceRepository;
-
-    public Long generateTransactionNumber(final String generalPractitioner) {
-        validateSender(generalPractitioner);
-        return sequenceRepository.getNextForTransaction(String.format(TRANSACTION_KEY_FORMAT, generalPractitioner));
-    }
 
     public Long generateInterchangeSequence(final String sender, final String recipient) {
         validateSenderAndRecipient(sender, recipient);
@@ -33,15 +27,6 @@ public class SequenceService {
             throw new SequenceException(
                 String.format("Sender or recipient not valid. Sender: %s, recipient: %s", sender, recipient)
             );
-        }
-    }
-
-    private void validateSender(final String sender) {
-        if (sender == null) {
-            throw new SequenceException("Sender cannot be null");
-        }
-        if (sender.isEmpty()) {
-            throw new SequenceException("Sender cannot be empty");
         }
     }
 

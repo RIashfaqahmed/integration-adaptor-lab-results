@@ -9,8 +9,6 @@ import uk.nhs.digital.nhsconnect.lab.results.model.edifact.Interchange;
 import uk.nhs.digital.nhsconnect.lab.results.model.edifact.Message;
 import uk.nhs.digital.nhsconnect.lab.results.model.edifact.MessageHeader;
 import uk.nhs.digital.nhsconnect.lab.results.model.edifact.MessageTrailer;
-import uk.nhs.digital.nhsconnect.lab.results.model.edifact.ReferenceTransactionNumber;
-import uk.nhs.digital.nhsconnect.lab.results.model.edifact.Transaction;
 import uk.nhs.digital.nhsconnect.lab.results.model.edifact.message.InterchangeFactory;
 import uk.nhs.digital.nhsconnect.lab.results.model.edifact.message.Split;
 import uk.nhs.digital.nhsconnect.lab.results.model.edifact.message.ToEdifactParsingException;
@@ -27,7 +25,7 @@ import java.util.stream.Stream;
 @Component
 public class EdifactParser {
 
-    private static final String TRANSACTION_START_SEGMENT = ReferenceTransactionNumber.KEY_QUALIFIER;
+    private static final String MESSAGE_END_SEGMENT = MessageTrailer.KEY;
 
     private final InterchangeFactory interchangeFactory;
 
@@ -68,45 +66,15 @@ public class EdifactParser {
 
     private Message parseMessage(List<String> singleMessageEdifactSegments) {
         var messageTrailerIndex = singleMessageEdifactSegments.size() - 1;
-        var firstTransactionStartIndex = findAllIndexesOfSegment(singleMessageEdifactSegments, TRANSACTION_START_SEGMENT).stream()
+        var firstMessageEndIndex = findAllIndexesOfSegment(singleMessageEdifactSegments, MESSAGE_END_SEGMENT).stream()
                 .findFirst()
-                // there might be no transaction inside - RECEP - so all message lines belong to the message
                 .orElse(messageTrailerIndex);
 
-        // first lines until transaction
-        var onlyMessageLines = new ArrayList<>(singleMessageEdifactSegments.subList(0, firstTransactionStartIndex));
+        // first lines until end of message
+        var onlyMessageLines = new ArrayList<>(singleMessageEdifactSegments.subList(0, firstMessageEndIndex));
         onlyMessageLines.add(singleMessageEdifactSegments.get(messageTrailerIndex));
 
-        var message = new Message(onlyMessageLines);
-        var transactions = parseAllTransactions(singleMessageEdifactSegments);
-        transactions.forEach(transaction -> transaction.setMessage(message));
-        message.setTransactions(transactions);
-
-        return message;
-    }
-
-    private List<Transaction> parseAllTransactions(List<String> singleMessageEdifactSegments) {
-        var transactionStartIndexes = findAllIndexesOfSegment(singleMessageEdifactSegments, TRANSACTION_START_SEGMENT);
-        var transactionEndIndexes = new ArrayList<>(transactionStartIndexes);
-
-        // there might be no transactions inside - RECEP
-        if (!transactionEndIndexes.isEmpty()) {
-            // there is no transaction end indicator, so ending segment is the one before the beginning of the next transaction
-            // so end indexes are beginning without first S01
-            transactionEndIndexes.remove(0);
-            // and last transaction end indicator is the segment before message trailer
-            var messageTrailerIndex = singleMessageEdifactSegments.size() - 1;
-            transactionEndIndexes.add(messageTrailerIndex);
-        }
-
-        var transactionStartEndIndexPairs = zipIndexes(transactionStartIndexes, transactionEndIndexes);
-
-        return transactionStartEndIndexPairs.stream()
-                .map(transactionStartEndIndexPair ->
-                        singleMessageEdifactSegments.subList(transactionStartEndIndexPair.getLeft(),
-                            transactionStartEndIndexPair.getRight()))
-                .map(Transaction::new)
-                .collect(Collectors.toList());
+        return new Message(onlyMessageLines);
     }
 
     private List<Pair<Integer, Integer>> zipIndexes(List<Integer> startIndexes, List<Integer> endIndexes) {

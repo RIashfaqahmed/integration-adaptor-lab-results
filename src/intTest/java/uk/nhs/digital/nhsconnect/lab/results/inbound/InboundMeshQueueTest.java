@@ -1,13 +1,12 @@
 package uk.nhs.digital.nhsconnect.lab.results.inbound;
 
-import org.assertj.core.api.SoftAssertions;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.nhs.digital.nhsconnect.lab.results.IntegrationBaseTest;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.MeshMessage;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.WorkflowId;
-import uk.nhs.digital.nhsconnect.lab.results.model.edifact.TransactionType;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -28,7 +27,7 @@ public class InboundMeshQueueTest extends IntegrationBaseTest {
     }
 
     @Test
-    void whenMeshInboundQueueMessageIsReceivedThenMessageIsHandled(SoftAssertions softly) throws IOException, JMSException {
+    void whenMeshInboundQueueMessageIsReceivedThenMessageIsHandled() throws IOException, JMSException {
         final MeshMessage meshMessage = new MeshMessage()
                 .setWorkflowId(WorkflowId.REGISTRATION)
                 .setContent(new String(Files.readAllBytes(getEdifactResource().getFile().toPath())))
@@ -40,7 +39,6 @@ public class InboundMeshQueueTest extends IntegrationBaseTest {
         final String content = parseTextMessage(message);
         final String expectedContent = new String(Files.readAllBytes(getFhirResource().getFile().toPath()));
 
-        softly.assertThat(message.getStringProperty("TransactionType")).isEqualTo(TransactionType.APPROVAL.name().toLowerCase());
-        softly.assertThat(content).isEqualTo(expectedContent);
+        assertThat(content).isEqualTo(expectedContent);
     }
 }
