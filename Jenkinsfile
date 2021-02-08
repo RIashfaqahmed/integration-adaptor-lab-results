@@ -16,7 +16,6 @@ pipeline {
         BUILD_TAG = sh label: 'Generating build tag', returnStdout: true, script: 'python3 pipeline/scripts/tag.py ${GIT_BRANCH} ${BUILD_NUMBER} ${GIT_COMMIT}'
         BUILD_TAG_LOWER = sh label: 'Lowercase build tag', returnStdout: true, script: "echo -n ${BUILD_TAG} | tr '[:upper:]' '[:lower:]'"
         ENVIRONMENT_ID = "lab-results-build"
-        // Need AWS first of all. Change it later
         ECR_REPO_DIR = "lab-results"
         DOCKER_IMAGE = "${DOCKER_REGISTRY}/${ECR_REPO_DIR}:${BUILD_TAG}"
     }
@@ -87,8 +86,7 @@ pipeline {
                         script {
                             if (ecrLogin(TF_STATE_BUCKET_REGION) != 0 )  { error("Docker login to ECR failed") }
                             String dockerPushCommand = "docker push ${DOCKER_IMAGE}"
-                            // Change echo to be an error once the AWS has been set up
-                            if (sh (label: "Pushing image", script: dockerPushCommand, returnStatus: true) !=0) { echo("Docker push image failed") }
+                            if (sh (label: "Pushing image", script: dockerPushCommand, returnStatus: true) !=0) { error("Docker push image failed") }
                         }
                     }
                 }
@@ -125,12 +123,10 @@ pipeline {
                                 if (terraformInit(TF_STATE_BUCKET, tfProject, tfEnvironment, tfComponent, tfRegion) !=0) { error("Terraform init failed")}
 
                                 // Run TF Plan
-                                // Change echo to be error once the AWS has been set up
-                                if (terraform('plan', TF_STATE_BUCKET, tfProject, tfEnvironment, tfComponent, tfRegion, tfVariables) !=0 ) { echo("Terraform Plan failed")}
+                                if (terraform('plan', TF_STATE_BUCKET, tfProject, tfEnvironment, tfComponent, tfRegion, tfVariables) !=0 ) { error("Terraform Plan failed")}
 
                                 //Run TF Apply
-                                // Change echo to be error once the AWS has been set up
-                                if (terraform('apply', TF_STATE_BUCKET, tfProject, tfEnvironment, tfComponent, tfRegion, tfVariables) !=0 ) { echo("Terraform Apply failed")}
+                                if (terraform('apply', TF_STATE_BUCKET, tfProject, tfEnvironment, tfComponent, tfRegion, tfVariables) !=0 ) { error("Terraform Apply failed")}
                               } // dir terraform/aws
                             } // dir integration-adaptors
                         } //script
