@@ -5,13 +5,14 @@ import uk.nhs.digital.nhsconnect.lab.results.model.edifact.Message;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-class PerformerMapperTest {
+class DiagnosticReportMapperTest {
 
     @Test
-    void testMapMessageToPractitioner() {
+    void testMapMessageToDiagnosticReport() {
         final Message message = new Message(new ArrayList<>());
-        assertTrue(new PerformerMapper().map(message).isEmpty());
+
+        assertFalse(new DiagnosticReportMapper().map(message).isEmpty());
     }
 }
