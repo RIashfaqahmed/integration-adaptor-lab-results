@@ -1,18 +1,17 @@
 package uk.nhs.digital.nhsconnect.lab.results.model.edifact;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import uk.nhs.digital.nhsconnect.lab.results.model.edifact.message.EdifactValidationException;
 import uk.nhs.digital.nhsconnect.lab.results.model.edifact.message.Split;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * Example PNA+PAT+9435492908:OPI+++SU:KENNEDY+FO:SARAH+TI:MISS+MI:ANGELA'
@@ -24,7 +23,7 @@ public class PersonName extends Segment {
 
     private static final String KEY = "PNA";
     private static final String QUALIFIER = "PAT";
-    private static final String KEY_QUALIFIER = KEY + PLUS_SEPARATOR + QUALIFIER;
+    public static final String KEY_QUALIFIER = KEY + PLUS_SEPARATOR + QUALIFIER;
     private static final String FAMILY_NAME_QUALIFIER = "SU";
     private static final String FIRST_NAME_QUALIFIER = "FO";
     private static final String MIDDLE_NAME_QUALIFIER = "MI";

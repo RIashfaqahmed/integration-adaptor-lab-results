@@ -1,18 +1,17 @@
 package uk.nhs.digital.nhsconnect.lab.results.model.edifact;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import uk.nhs.digital.nhsconnect.lab.results.model.edifact.message.EdifactValidationException;
 import uk.nhs.digital.nhsconnect.lab.results.model.edifact.message.Split;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-
-import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * Example 1: DTM+SCO:20100223:102'
@@ -25,7 +24,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public class SpecimenCollectionDateTime extends Segment {
     protected static final String KEY = "DTM";
     private static final String QUALIFIER = "SCO";
-    private static final String KEY_QUALIFIER = KEY + PLUS_SEPARATOR + QUALIFIER;
+    public static final String KEY_QUALIFIER = KEY + PLUS_SEPARATOR + QUALIFIER;
     private static final DateTimeFormatter DATE_FORMATTER_CCYYMMDD = DateTimeFormatter.ofPattern("yyyyMMdd");
     private static final DateTimeFormatter DATE_FORMATTER_CCYYMMDDHHMM = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
 

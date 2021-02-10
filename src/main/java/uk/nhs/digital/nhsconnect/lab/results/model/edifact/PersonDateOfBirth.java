@@ -1,18 +1,17 @@
 package uk.nhs.digital.nhsconnect.lab.results.model.edifact;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import java.time.LocalDate;
+import java.time.Year;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import uk.nhs.digital.nhsconnect.lab.results.model.edifact.message.EdifactValidationException;
 import uk.nhs.digital.nhsconnect.lab.results.model.edifact.message.Split;
-
-import java.time.LocalDate;
-import java.time.Year;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
-
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * Example DTM+329:19450730:102'
@@ -24,7 +23,7 @@ public class PersonDateOfBirth extends Segment {
 
     protected static final String KEY = "DTM";
     private static final String QUALIFIER = "329";
-    private static final String KEY_QUALIFIER = KEY + PLUS_SEPARATOR + QUALIFIER;
+    public static final String KEY_QUALIFIER = KEY + PLUS_SEPARATOR + QUALIFIER;
     private static final DateTimeFormatter DATE_FORMATTER_CCYY = DateTimeFormatter.ofPattern("yyyy");
     private static final DateTimeFormatter DATE_FORMATTER_CCYYMM = DateTimeFormatter.ofPattern("yyyyMM");
     private static final DateTimeFormatter DATE_FORMATTER_CCYYMMDD = DateTimeFormatter.ofPattern("yyyyMMdd");
