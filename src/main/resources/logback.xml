@@ -19,6 +19,6 @@
 	</appender>
 
 	<root level="${LAB_RESULTS_LOGGING_LEVEL:-INFO}">
-		<appender-ref ref="${LAB_RESULTS_LOGGING_APPENDER:-JSON}"/>
+		<appender-ref ref="${LAB_RESULTS_LOGGING_APPENDER:-TEXT}"/>
 	</root>
 </configuration>
