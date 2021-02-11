@@ -1,5 +1,13 @@
 package uk.nhs.digital.nhsconnect.lab.results.inbound;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.jms.JMSException;
+import javax.jms.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,15 +17,6 @@ import uk.nhs.digital.nhsconnect.lab.results.mesh.message.OutboundMeshMessage;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.WorkflowId;
 import uk.nhs.digital.nhsconnect.lab.results.model.edifact.Interchange;
 import uk.nhs.digital.nhsconnect.lab.results.utils.JmsHeaders;
-
-import javax.jms.JMSException;
-import javax.jms.Message;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * The test EDIFACT message (.dat file) is sent to the MESH mailbox where the adaptor receives inbound messages.
@@ -54,8 +53,8 @@ public class InboundUserAcceptanceTest extends IntegrationBaseTest {
         final Message gpOutboundQueueMessage = getGpOutboundQueueMessage();
         assertThat(gpOutboundQueueMessage).isNotNull();
 
-        final String conservationId = gpOutboundQueueMessage.getStringProperty(JmsHeaders.CORRELATION_ID);
-        assertThat(conservationId).isNotEmpty();
+        final String correlationId = gpOutboundQueueMessage.getStringProperty(JmsHeaders.CORRELATION_ID);
+        assertThat(correlationId).isNotEmpty();
 
         final String expectedMessageBody = new String(Files.readAllBytes(getFhirResource().getFile().toPath()));
         final String messageBody = parseTextMessage(gpOutboundQueueMessage);
