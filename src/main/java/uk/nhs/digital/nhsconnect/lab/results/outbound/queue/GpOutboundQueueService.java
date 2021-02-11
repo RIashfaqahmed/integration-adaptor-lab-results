@@ -9,7 +9,7 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import org.springframework.stereotype.Component;
 import uk.nhs.digital.nhsconnect.lab.results.inbound.queue.FhirDataToSend;
-import uk.nhs.digital.nhsconnect.lab.results.utils.ConversationIdService;
+import uk.nhs.digital.nhsconnect.lab.results.utils.CorrelationIdService;
 import uk.nhs.digital.nhsconnect.lab.results.utils.JmsHeaders;
 
 import javax.jms.Session;
@@ -22,7 +22,7 @@ public class GpOutboundQueueService {
 
     private final JmsTemplate jmsTemplate;
     private final ObjectSerializer serializer;
-    private final ConversationIdService conversationIdService;
+    private final CorrelationIdService correlationIdService;
 
     @Value("${labresults.amqp.gpOutboundQueueName}")
     private String gpOutboundQueueName;
@@ -36,7 +36,7 @@ public class GpOutboundQueueService {
         final MessageCreator messageCreator = (Session session) -> {
             final TextMessage message = session.createTextMessage(jsonMessage);
             message.setStringProperty(JmsHeaders.OPERATION_ID, fhirDataToSend.getOperationId());
-            message.setStringProperty(JmsHeaders.CONVERSATION_ID, conversationIdService.getCurrentConversationId());
+            message.setStringProperty(JmsHeaders.CORRELATION_ID, correlationIdService.getCurrentCorrelationId());
             return message;
         };
 

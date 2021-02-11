@@ -17,7 +17,7 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.http.MeshClient;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.OutboundMeshMessage;
-import uk.nhs.digital.nhsconnect.lab.results.utils.ConversationIdService;
+import uk.nhs.digital.nhsconnect.lab.results.utils.CorrelationIdService;
 import uk.nhs.digital.nhsconnect.lab.results.utils.JmsHeaders;
 import uk.nhs.digital.nhsconnect.lab.results.utils.TimestampService;
 
@@ -49,7 +49,7 @@ class MeshOutboundQueueServiceTest {
     @Mock
     private MeshClient meshClient;
     @Mock
-    private ConversationIdService conversationIdService;
+    private CorrelationIdService correlationIdService;
 
     @Captor
     private ArgumentCaptor<MessageCreator> messageCreatorCaptor;
@@ -69,7 +69,7 @@ class MeshOutboundQueueServiceTest {
         void setUp() {
             when(timestampService.getCurrentTimestamp()).thenReturn(NOW);
             when(timestampService.formatInISO(NOW)).thenReturn(TIMESTAMP);
-            when(conversationIdService.getCurrentConversationId()).thenReturn("ConversationID");
+            when(correlationIdService.getCurrentCorrelationId()).thenReturn("CorrelationID");
         }
 
         @Test
@@ -90,7 +90,7 @@ class MeshOutboundQueueServiceTest {
 
             final Message result = messageCreatorCaptor.getValue().createMessage(mockSession);
 
-            verify(mockTextMessage).setStringProperty(JmsHeaders.CONVERSATION_ID, "ConversationID");
+            verify(mockTextMessage).setStringProperty(JmsHeaders.CORRELATION_ID, "CorrelationID");
             assertEquals(mockTextMessage, result);
         }
     }
@@ -102,7 +102,7 @@ class MeshOutboundQueueServiceTest {
         @SneakyThrows
         void testReceiveGoodCase() {
             final var message = mock(Message.class);
-            when(message.getStringProperty(JmsHeaders.CONVERSATION_ID)).thenReturn("ConversationID");
+            when(message.getStringProperty(JmsHeaders.CORRELATION_ID)).thenReturn("CorrelationID");
             when(message.getBody(String.class)).thenReturn("Message Body");
 
             final var outboundMeshMessage = mock(OutboundMeshMessage.class);
@@ -110,17 +110,17 @@ class MeshOutboundQueueServiceTest {
 
             meshOutboundQueueService.receive(message);
 
-            verify(conversationIdService).applyConversationId("ConversationID");
+            verify(correlationIdService).applyCorrelationId("CorrelationID");
             verify(meshClient).authenticate();
             verify(meshClient).sendEdifactMessage(outboundMeshMessage);
-            verify(conversationIdService).resetConversationId();
+            verify(correlationIdService).resetCorrelationId();
         }
 
         @Test
         @SneakyThrows
-        void testReceiveFailsToApplyConversationId() {
+        void testReceiveFailsToApplyCorrelationId() {
             final var message = mock(Message.class);
-            when(message.getStringProperty(JmsHeaders.CONVERSATION_ID))
+            when(message.getStringProperty(JmsHeaders.CORRELATION_ID))
                 .thenThrow(new JMSException("Expected exception"));
             when(message.getBody(String.class)).thenReturn("Message Body");
 
@@ -129,10 +129,10 @@ class MeshOutboundQueueServiceTest {
 
             meshOutboundQueueService.receive(message);
 
-            verify(conversationIdService, never()).applyConversationId("ConversationID");
+            verify(correlationIdService, never()).applyCorrelationId("CorrelationID");
             verify(meshClient).authenticate();
             verify(meshClient).sendEdifactMessage(outboundMeshMessage);
-            verify(conversationIdService).resetConversationId();
+            verify(correlationIdService).resetCorrelationId();
         }
 
         @Test
@@ -140,7 +140,7 @@ class MeshOutboundQueueServiceTest {
         @SuppressWarnings("deprecation")
         void testReceiveFailsToReadBody() {
             final var message = mock(Message.class);
-            when(message.getStringProperty(JmsHeaders.CONVERSATION_ID)).thenReturn("ConversationID");
+            when(message.getStringProperty(JmsHeaders.CORRELATION_ID)).thenReturn("CorrelationID");
             when(message.getBody(String.class)).thenReturn("Message Body");
 
             final var outboundMeshMessage = mock(OutboundMeshMessage.class);
@@ -149,10 +149,10 @@ class MeshOutboundQueueServiceTest {
 
             assertThrows(JsonMappingException.class, () -> meshOutboundQueueService.receive(message));
 
-            verify(conversationIdService).applyConversationId("ConversationID");
+            verify(correlationIdService).applyCorrelationId("CorrelationID");
             verify(meshClient, never()).authenticate();
             verify(meshClient, never()).sendEdifactMessage(outboundMeshMessage);
-            verify(conversationIdService).resetConversationId();
+            verify(correlationIdService).resetCorrelationId();
         }
     }
 }

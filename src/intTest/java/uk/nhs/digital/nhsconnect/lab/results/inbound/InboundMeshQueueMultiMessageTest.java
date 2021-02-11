@@ -28,7 +28,7 @@ public class InboundMeshQueueMultiMessageTest extends IntegrationBaseTest {
     @Value("classpath:edifact/multi_registration.dat")
     private Resource multiEdifactResource;
 
-    private String previousConversationId;
+    private String previousCorrelationId;
 
     @BeforeEach
     void setUp() {
@@ -65,12 +65,12 @@ public class InboundMeshQueueMultiMessageTest extends IntegrationBaseTest {
 
     private void assertGpOutboundQueueMessages(SoftAssertions softly, Message message) throws JMSException, IOException {
 
-        // all messages come from the same interchange and use the same conversation id
-        final String conversationId = message.getStringProperty("ConversationId");
-        if (previousConversationId == null) {
-            previousConversationId = conversationId;
+        // all messages come from the same interchange and use the same correlation id
+        final String correlationId = message.getStringProperty("CorrelationId");
+        if (previousCorrelationId == null) {
+            previousCorrelationId = correlationId;
         }
-        softly.assertThat(conversationId).isEqualTo(previousConversationId);
+        softly.assertThat(correlationId).isEqualTo(previousCorrelationId);
 
         final String messageBody = parseTextMessage(message);
         final String expectedMessageBody = new String(Files.readAllBytes(getFhirResource().getFile().toPath()));

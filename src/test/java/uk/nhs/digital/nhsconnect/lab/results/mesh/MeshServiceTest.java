@@ -12,7 +12,7 @@ import uk.nhs.digital.nhsconnect.lab.results.mesh.exception.MeshApiConnectionExc
 import uk.nhs.digital.nhsconnect.lab.results.mesh.exception.MeshWorkflowUnknownException;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.http.MeshClient;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.MeshMessage;
-import uk.nhs.digital.nhsconnect.lab.results.utils.ConversationIdService;
+import uk.nhs.digital.nhsconnect.lab.results.utils.CorrelationIdService;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -41,7 +41,7 @@ class MeshServiceTest {
     private MeshMailBoxScheduler meshMailBoxScheduler;
 
     @Mock
-    private ConversationIdService conversationIdService;
+    private CorrelationIdService correlationIdService;
 
     private final long scanDelayInSeconds = 2L;
     private final long scanIntervalInMilliseconds = 6000L;
@@ -63,7 +63,7 @@ class MeshServiceTest {
         meshService = new MeshService(meshClient,
             meshInboundQueueService,
             meshMailBoxScheduler,
-            conversationIdService,
+            correlationIdService,
             scanDelayInSeconds,
             scanIntervalInMilliseconds,
             pollingCycleMaximumDurationInSeconds);
@@ -88,8 +88,8 @@ class MeshServiceTest {
         verify(meshInboundQueueService).publish(meshMessage1);
         verify(meshClient).acknowledgeMessage(MESSAGE_ID2);
 
-        verify(conversationIdService, times(2)).applyRandomConversationId();
-        verify(conversationIdService, times(2)).resetConversationId();
+        verify(correlationIdService, times(2)).applyRandomCorrelationId();
+        verify(correlationIdService, times(2)).resetCorrelationId();
     }
 
     @Test
@@ -111,8 +111,8 @@ class MeshServiceTest {
         verify(meshClient).acknowledgeMessage(MESSAGE_ID1);
         verifyNoMoreInteractions(meshClient, meshInboundQueueService); // second message not downloaded and published
 
-        verify(conversationIdService).applyRandomConversationId();
-        verify(conversationIdService).resetConversationId();
+        verify(correlationIdService).applyRandomCorrelationId();
+        verify(correlationIdService).resetCorrelationId();
     }
 
     @Test
@@ -128,7 +128,7 @@ class MeshServiceTest {
         verify(meshInboundQueueService, never()).publish(any());
         verify(meshClient, never()).acknowledgeMessage(any());
 
-        verifyNoInteractions(conversationIdService);
+        verifyNoInteractions(correlationIdService);
     }
 
     @Test
@@ -145,8 +145,8 @@ class MeshServiceTest {
         verify(meshInboundQueueService, never()).publish(any());
         verify(meshClient, never()).acknowledgeMessage(MESSAGE_ID1);
 
-        verify(conversationIdService).applyRandomConversationId();
-        verify(conversationIdService).resetConversationId();
+        verify(correlationIdService).applyRandomCorrelationId();
+        verify(correlationIdService).resetCorrelationId();
     }
 
     @Test
@@ -163,8 +163,8 @@ class MeshServiceTest {
         verify(meshInboundQueueService, never()).publish(any());
         verify(meshClient, never()).acknowledgeMessage(MESSAGE_ID1);
 
-        verify(conversationIdService).applyRandomConversationId();
-        verify(conversationIdService).resetConversationId();
+        verify(correlationIdService).applyRandomCorrelationId();
+        verify(correlationIdService).resetCorrelationId();
     }
 
     @Test
@@ -183,8 +183,8 @@ class MeshServiceTest {
         verify(meshInboundQueueService).publish(meshMessage1);
         verify(meshClient).acknowledgeMessage(MESSAGE_ID1);
 
-        verify(conversationIdService, times(2)).applyRandomConversationId();
-        verify(conversationIdService, times(2)).resetConversationId();
+        verify(correlationIdService, times(2)).applyRandomCorrelationId();
+        verify(correlationIdService, times(2)).resetCorrelationId();
     }
 
     @Test
@@ -210,8 +210,8 @@ class MeshServiceTest {
         verify(meshClient).acknowledgeMessage(ERROR_MESSAGE_ID);
         verify(meshClient).acknowledgeMessage(MESSAGE_ID1);
 
-        verify(conversationIdService, times(2)).applyRandomConversationId();
-        verify(conversationIdService, times(2)).resetConversationId();
+        verify(correlationIdService, times(2)).applyRandomCorrelationId();
+        verify(correlationIdService, times(2)).resetCorrelationId();
     }
 
     @Test
@@ -229,8 +229,8 @@ class MeshServiceTest {
         verify(meshInboundQueueService).publish(meshMessage1);
         verify(meshClient, never()).acknowledgeMessage(MESSAGE_ID1);
 
-        verify(conversationIdService).applyRandomConversationId();
-        verify(conversationIdService).resetConversationId();
+        verify(correlationIdService).applyRandomCorrelationId();
+        verify(correlationIdService).resetCorrelationId();
     }
 
     @Test
@@ -242,7 +242,7 @@ class MeshServiceTest {
 
         verifyNoInteractions(meshClient);
         verifyNoInteractions(meshInboundQueueService);
-        verifyNoInteractions(conversationIdService);
+        verifyNoInteractions(correlationIdService);
     }
 
     @Test

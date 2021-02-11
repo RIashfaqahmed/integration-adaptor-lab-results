@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import uk.nhs.digital.nhsconnect.lab.results.inbound.queue.FhirDataToSend;
-import uk.nhs.digital.nhsconnect.lab.results.utils.ConversationIdService;
+import uk.nhs.digital.nhsconnect.lab.results.utils.CorrelationIdService;
 import uk.nhs.digital.nhsconnect.lab.results.utils.JmsHeaders;
 
 import javax.jms.JMSException;
@@ -34,7 +34,7 @@ class GpOutboundQueueServiceTest {
     @Mock
     private ObjectSerializer serializer;
     @Mock
-    private ConversationIdService conversationIdService;
+    private CorrelationIdService correlationIdService;
     @Mock
     private Session session;
     @Mock
@@ -54,7 +54,7 @@ class GpOutboundQueueServiceTest {
         final String serializedData = "some_serialized_data";
 
         when(serializer.serialize(parameters)).thenReturn(serializedData);
-        when(conversationIdService.getCurrentConversationId()).thenReturn(CONSERVATION_ID);
+        when(correlationIdService.getCurrentCorrelationId()).thenReturn(CONSERVATION_ID);
 
         gpOutboundQueueService.publish(fhirDataToSend);
 
@@ -70,9 +70,9 @@ class GpOutboundQueueServiceTest {
 
         verify(session).createTextMessage(eq(serializedData));
         verify(textMessage).setStringProperty(JmsHeaders.OPERATION_ID, fhirDataToSend.getOperationId());
-        verify(textMessage).setStringProperty(JmsHeaders.CONVERSATION_ID, CONSERVATION_ID);
+        verify(textMessage).setStringProperty(JmsHeaders.CORRELATION_ID, CONSERVATION_ID);
 
-        verify(conversationIdService).getCurrentConversationId();
+        verify(correlationIdService).getCurrentCorrelationId();
     }
 
 }

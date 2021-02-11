@@ -10,7 +10,7 @@ import uk.nhs.digital.nhsconnect.lab.results.inbound.queue.MeshInboundQueueServi
 import uk.nhs.digital.nhsconnect.lab.results.mesh.exception.MeshWorkflowUnknownException;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.http.MeshClient;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.InboundMeshMessage;
-import uk.nhs.digital.nhsconnect.lab.results.utils.ConversationIdService;
+import uk.nhs.digital.nhsconnect.lab.results.utils.CorrelationIdService;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +25,7 @@ public class MeshService {
 
     private final MeshMailBoxScheduler meshMailBoxScheduler;
 
-    private final ConversationIdService conversationIdService;
+    private final CorrelationIdService correlationIdService;
 
     private final long pollingCycleMinimumIntervalInSeconds;
 
@@ -37,14 +37,14 @@ public class MeshService {
     public MeshService(MeshClient meshClient,
                        MeshInboundQueueService meshInboundQueueService,
                        MeshMailBoxScheduler meshMailBoxScheduler,
-                       ConversationIdService conversationIdService,
+                       CorrelationIdService correlationIdService,
                        @Value("${labresults.mesh.pollingCycleMinimumIntervalInSeconds}") long pollingCycleMinimumIntervalInSeconds,
                        @Value("${labresults.mesh.wakeupIntervalInMilliseconds}") long wakeupIntervalInMilliseconds,
                        @Value("${labresults.mesh.pollingCycleDurationInSeconds}") long pollingCycleDurationInSeconds) {
         this.meshClient = meshClient;
         this.meshInboundQueueService = meshInboundQueueService;
         this.meshMailBoxScheduler = meshMailBoxScheduler;
-        this.conversationIdService = conversationIdService;
+        this.correlationIdService = correlationIdService;
         this.pollingCycleMinimumIntervalInSeconds = pollingCycleMinimumIntervalInSeconds;
         this.wakeupIntervalInMilliseconds = wakeupIntervalInMilliseconds;
         this.pollingCycleDurationInSeconds = pollingCycleDurationInSeconds;
@@ -95,7 +95,7 @@ public class MeshService {
 
     private void processSingleMessage(String messageId) {
         try {
-            conversationIdService.applyRandomConversationId();
+            correlationIdService.applyRandomCorrelationId();
             LOGGER.debug("Downloading MeshMessageId={}", messageId);
             final InboundMeshMessage meshMessage = meshClient.getEdifactMessage(messageId);
             LOGGER.debug("Publishing content of MeshMessageId={} to inbound mesh MQ", messageId);
@@ -110,7 +110,7 @@ public class MeshService {
             LOGGER.error("Error during reading of MESH message. MeshMessageId={}", messageId, ex);
             // skip message with error and attempt to download the next one
         } finally {
-            conversationIdService.resetConversationId();
+            correlationIdService.resetCorrelationId();
         }
     }
 
