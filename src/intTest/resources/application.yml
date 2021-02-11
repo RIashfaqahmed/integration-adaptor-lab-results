@@ -4,8 +4,6 @@ server:
 logging:
   level:
     uk.nhs.digital.nhsconnect.lab.results: DEBUG
-  pattern:
-    console: "-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} ConversationId=%X{ConversationId} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"
 
 management:
   endpoints:
@@ -36,7 +34,7 @@ labresults:
     username:
     password:
     options:
-    autoIndexCreation: ${LAB_RESULTS_MONGO_AUTO_INDEX_CREATION}
+    autoIndexCreation: ${LAB_RESULTS_MONGO_AUTO_INDEX_CREATION:true}
     ttl: PT87600H # long duration (10 years) because the timestamps used in tests are hardcoded. prevent deletion of data during tests
     cosmosDbEnabled: false
   mesh:

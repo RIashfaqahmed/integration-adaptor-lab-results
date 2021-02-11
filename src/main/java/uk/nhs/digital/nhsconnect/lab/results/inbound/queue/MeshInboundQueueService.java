@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import uk.nhs.digital.nhsconnect.lab.results.inbound.InboundMessageHandler;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.InboundMeshMessage;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.WorkflowId;
-import uk.nhs.digital.nhsconnect.lab.results.utils.ConversationIdService;
+import uk.nhs.digital.nhsconnect.lab.results.utils.CorrelationIdService;
 import uk.nhs.digital.nhsconnect.lab.results.utils.JmsHeaders;
 import uk.nhs.digital.nhsconnect.lab.results.utils.JmsReader;
 import uk.nhs.digital.nhsconnect.lab.results.utils.TimestampService;
@@ -32,7 +32,7 @@ public class MeshInboundQueueService {
 
     private final JmsTemplate jmsTemplate;
 
-    private final ConversationIdService conversationIdService;
+    private final CorrelationIdService correlationIdService;
 
     private final InboundMessageHandler inboundMessageHandler;
 
@@ -43,7 +43,7 @@ public class MeshInboundQueueService {
     public void receive(final Message message) throws IOException, JMSException {
 
         try {
-            setLoggingConversationId(message);
+            setLoggingCorrelationId(message);
             final String messageBody = JmsReader.readMessage(message);
 
             LOGGER.debug("Received message messageBody: {}", messageBody);
@@ -62,7 +62,7 @@ public class MeshInboundQueueService {
             LOGGER.error("Error while processing mesh inbound queue message", e);
             throw e;
         } finally {
-            conversationIdService.resetConversationId();
+            correlationIdService.resetCorrelationId();
         }
     }
 
@@ -71,7 +71,7 @@ public class MeshInboundQueueService {
         messageContent.setMessageSentTimestamp(timestampService.formatInISO(timestampService.getCurrentTimestamp()));
         jmsTemplate.send(meshInboundQueueName, session -> {
             var message = session.createTextMessage(serializeMeshMessage(messageContent));
-            message.setStringProperty(JmsHeaders.CONVERSATION_ID, conversationIdService.getCurrentConversationId());
+            message.setStringProperty(JmsHeaders.CORRELATION_ID, correlationIdService.getCurrentCorrelationId());
             return message;
         });
     }
@@ -81,12 +81,12 @@ public class MeshInboundQueueService {
         return objectMapper.writeValueAsString(meshMessage);
     }
 
-    private void setLoggingConversationId(final Message message) {
+    private void setLoggingCorrelationId(final Message message) {
         try {
-            final String conversationId = message.getStringProperty(JmsHeaders.CONVERSATION_ID);
-            conversationIdService.applyConversationId(conversationId);
+            final String correlationId = message.getStringProperty(JmsHeaders.CORRELATION_ID);
+            correlationIdService.applyCorrelationId(correlationId);
         } catch (JMSException e) {
-            LOGGER.error("Unable to read header " + JmsHeaders.CONVERSATION_ID + " from message", e);
+            LOGGER.error("Unable to read header " + JmsHeaders.CORRELATION_ID + " from message", e);
         }
     }
 }

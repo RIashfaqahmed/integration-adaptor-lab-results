@@ -6,24 +6,24 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 @Component
-public class ConversationIdService {
+public class CorrelationIdService {
 
-    private static final String MDC_KEY = "ConversationId";
+    private static final String MDC_KEY = "CorrelationId";
 
-    public void applyConversationId(String id) {
+    public void applyCorrelationId(String id) {
         MDC.put(MDC_KEY, id);
     }
 
-    public void applyRandomConversationId() {
+    public void applyRandomCorrelationId() {
         var id = UUID.randomUUID().toString().toUpperCase().replace("-", "");
-        applyConversationId(id);
+        applyCorrelationId(id);
     }
 
-    public void resetConversationId() {
+    public void resetCorrelationId() {
         MDC.remove(MDC_KEY);
     }
 
-    public String getCurrentConversationId() {
+    public String getCurrentCorrelationId() {
         return MDC.get(MDC_KEY);
     }
 

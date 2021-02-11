@@ -15,7 +15,7 @@ import uk.nhs.digital.nhsconnect.lab.results.inbound.InboundMessageHandler;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.InboundMeshMessage;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.MeshMessage;
 import uk.nhs.digital.nhsconnect.lab.results.mesh.message.WorkflowId;
-import uk.nhs.digital.nhsconnect.lab.results.utils.ConversationIdService;
+import uk.nhs.digital.nhsconnect.lab.results.utils.CorrelationIdService;
 import uk.nhs.digital.nhsconnect.lab.results.utils.JmsHeaders;
 import uk.nhs.digital.nhsconnect.lab.results.utils.TimestampService;
 
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class MeshInboundQueueServiceTest {
 
-    private static final String CONVERSATION_ID = "CONV123";
+    private static final String CORRELATION_ID = "CORR123";
 
     @Spy
     private ObjectMapper objectMapper;
@@ -56,7 +56,7 @@ class MeshInboundQueueServiceTest {
     private JmsTemplate jmsTemplate;
 
     @Mock
-    private ConversationIdService conversationIdService;
+    private CorrelationIdService correlationIdService;
 
     @Mock
     private Message message;
@@ -66,65 +66,65 @@ class MeshInboundQueueServiceTest {
 
     @Test
     void receiveInboundMessageIsHandledByInboundQueueConsumerService() throws Exception {
-        when(message.getStringProperty(JmsHeaders.CONVERSATION_ID)).thenReturn(CONVERSATION_ID);
+        when(message.getStringProperty(JmsHeaders.CORRELATION_ID)).thenReturn(CORRELATION_ID);
         when(message.getBody(String.class)).thenReturn("{\"workflowId\":\"LAB_RESULTS_REG\"}");
 
         meshInboundQueueService.receive(message);
 
-        verify(conversationIdService).applyConversationId(CONVERSATION_ID);
+        verify(correlationIdService).applyCorrelationId(CORRELATION_ID);
 
         final MeshMessage expectedMeshMessage = new MeshMessage();
         expectedMeshMessage.setWorkflowId(WorkflowId.REGISTRATION);
         verify(inboundMessageHandler).handle(expectedMeshMessage);
 
         verify(message).acknowledge();
-        verify(conversationIdService).resetConversationId();
+        verify(correlationIdService).resetCorrelationId();
     }
 
     @Test
     void receiveInboundMessageWithInvalidWorkflowIdThrowsException() throws Exception {
-        when(message.getStringProperty(JmsHeaders.CONVERSATION_ID)).thenReturn(CONVERSATION_ID);
+        when(message.getStringProperty(JmsHeaders.CORRELATION_ID)).thenReturn(CORRELATION_ID);
         when(message.getBody(String.class)).thenReturn("{\"workflowId\":\"INVALID\"}");
 
         assertThrows(Exception.class, () -> meshInboundQueueService.receive(message));
 
-        verify(conversationIdService).applyConversationId(CONVERSATION_ID);
+        verify(correlationIdService).applyCorrelationId(CORRELATION_ID);
         verify(message, never()).acknowledge();
-        verify(conversationIdService).resetConversationId();
+        verify(correlationIdService).resetCorrelationId();
     }
 
     @Test
     void receiveInboundMessageHandledByInboundQueueConsumerServiceThrowsException() throws Exception {
-        when(message.getStringProperty(JmsHeaders.CONVERSATION_ID)).thenReturn(CONVERSATION_ID);
+        when(message.getStringProperty(JmsHeaders.CORRELATION_ID)).thenReturn(CORRELATION_ID);
         when(message.getBody(String.class)).thenReturn("{\"workflowId\":\"LAB_RESULTS_REG\"}");
         doThrow(RuntimeException.class).when(inboundMessageHandler).handle(any(MeshMessage.class));
 
         assertThrows(RuntimeException.class, () -> meshInboundQueueService.receive(message));
 
-        verify(conversationIdService).applyConversationId(CONVERSATION_ID);
+        verify(correlationIdService).applyCorrelationId(CORRELATION_ID);
         verify(message, never()).acknowledge();
-        verify(conversationIdService).resetConversationId();
+        verify(correlationIdService).resetCorrelationId();
     }
 
     @Test
-    void receiveInboundMessageSetLoggingConversationHeaderThrowsExceptionCatchesAndContinues() throws Exception {
-        doThrow(JMSException.class).when(message).getStringProperty(JmsHeaders.CONVERSATION_ID);
+    void receiveInboundMessageSetLoggingCorrelationHeaderThrowsExceptionCatchesAndContinues() throws Exception {
+        doThrow(JMSException.class).when(message).getStringProperty(JmsHeaders.CORRELATION_ID);
         when(message.getBody(String.class)).thenReturn("{\"workflowId\":\"LAB_RESULTS_REG\"}");
 
         meshInboundQueueService.receive(message);
 
-        verify(conversationIdService, never()).applyConversationId(CONVERSATION_ID);
+        verify(correlationIdService, never()).applyCorrelationId(CORRELATION_ID);
 
         final MeshMessage expectedMeshMessage = new MeshMessage();
         expectedMeshMessage.setWorkflowId(WorkflowId.REGISTRATION);
         verify(inboundMessageHandler).handle(expectedMeshMessage);
 
         verify(message).acknowledge();
-        verify(conversationIdService).resetConversationId();
+        verify(correlationIdService).resetCorrelationId();
     }
 
     @Test
-    void whenPublishInboundMessageFromMeshThenTimestampAndConversationIdAreSet() throws Exception {
+    void whenPublishInboundMessageFromMeshThenTimestampAndCorrelationIdAreSet() throws Exception {
         final var now = Instant.now();
         when(timestampService.getCurrentTimestamp()).thenReturn(now);
         final var messageSentTimestamp = "2020-06-12T14:15:16Z";
@@ -146,11 +146,11 @@ class MeshInboundQueueServiceTest {
         final TextMessage textMessage = mock(TextMessage.class);
         // should not return a testMessage unless timestamp was set to expected value
         when(jmsSession.createTextMessage(expectedStringMessage)).thenReturn(textMessage);
-        when(conversationIdService.getCurrentConversationId()).thenReturn(CONVERSATION_ID);
+        when(correlationIdService.getCurrentCorrelationId()).thenReturn(CORRELATION_ID);
 
         final var actualTextMessage = messageCreator.createMessage(jmsSession);
         assertEquals(textMessage, actualTextMessage);
-        verify(textMessage).setStringProperty(JmsHeaders.CONVERSATION_ID, CONVERSATION_ID);
+        verify(textMessage).setStringProperty(JmsHeaders.CORRELATION_ID, CORRELATION_ID);
     }
 
 }

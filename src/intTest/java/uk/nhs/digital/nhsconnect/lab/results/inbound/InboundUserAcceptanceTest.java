@@ -54,7 +54,7 @@ public class InboundUserAcceptanceTest extends IntegrationBaseTest {
         final Message gpOutboundQueueMessage = getGpOutboundQueueMessage();
         assertThat(gpOutboundQueueMessage).isNotNull();
 
-        final String conservationId = gpOutboundQueueMessage.getStringProperty(JmsHeaders.CONVERSATION_ID);
+        final String conservationId = gpOutboundQueueMessage.getStringProperty(JmsHeaders.CORRELATION_ID);
         assertThat(conservationId).isNotEmpty();
 
         final String expectedMessageBody = new String(Files.readAllBytes(getFhirResource().getFile().toPath()));
